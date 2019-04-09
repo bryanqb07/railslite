@@ -7,9 +7,10 @@ class ControllerBase
   attr_reader :req, :res, :params
 
   # Setup the controller
-  def initialize(req, res)
+  def initialize(req, res, params)
     @req = req
     @res = res
+    @params = params
     @already_built_response = false
   end
 
@@ -26,7 +27,7 @@ class ControllerBase
   end
 
   # Populate the response with content.
-  # Set the response's content type to the given type.
+  # Set the response2's content type to the given type.
   # Raise an error if the developer tries to double render.
   def render_content(content, content_type)
     prepare_render_redirect
@@ -40,20 +41,23 @@ class ControllerBase
     # "skeleton/views/#{controller_name}/#{template_name}.html.erb"
     dir_path = File.dirname(__FILE__) # dir of this current file /skeleton/lib/
     # .. = jump back one directory
+    # .underscore turns ClassName into class_name
     template_f = File.join(dir_path, "..", "views",
       self.class.name.underscore, "#{template_name}.html.erb")
     template_code = File.read(template_f)
-    #bind file into an ERB object
+    #bind file vars into an ERB object
     render_content(ERB.new(template_code).result(binding), "text/html")
   end
 
   # method exposing a `Session` object
   def session
-    @session ||= Session.new(req)
+    @session ||= Session.new(@req)
   end
 
   # use this with the router to call action_name (:index, :show, :create...)
   def invoke_action(name)
+    self.send :name
+    render :name unless @already_built_response
   end
 
   private
